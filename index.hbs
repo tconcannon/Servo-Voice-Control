@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<script src="artyom.min.js"></script>
+	</head>
+	<body>
+		<script src="/socket.io.js"></script>
+		<p>TEST</p>
+		<script>
+			var socket = io('http://localhost');
+ 			socket.on('news', function (data) {
+    			console.log(data);
+    		});
+			var commandHello = {
+    			indexes:["hello","good morning","hey"], // These spoken words will trigger the execution of the command
+    			action:function(){ // Action to be executed when a index match with spoken word
+        			artyom.say("Hey buddy ! How are you today?");
+    			}
+			};
+			var commandOpen = {
+				indexes:["open"],
+				action: function(){
+					socket.emit('open', {command: 'open'})
+				}
+			}
+			var commandClose = {
+				indexes:["close","clothes","Lowes"],
+				action: function(){
+					socket.emit('close', {command: 'close'})
+				}
+			}
+
+		artyom.addCommands(commandHello); // Add the command with addCommands method. Now
+		artyom.addCommands(commandOpen);
+		artyom.addCommands(commandClose);
+
+		// This function activates artyom and will listen all that you say forever (requires https conection, otherwise a dialog will request if you allow the use of the microphone)
+    		setTimeout(function(){// if you use artyom.fatality , wait 250 ms to initialize again.
+         		artyom.initialize({
+            		lang:"en-GB",// A lot of languages are supported. Read the docs !
+            		continuous:true,// Artyom will listen forever
+            		listen:true, // Start recognizing
+            		debug:true, // Show everything in the console
+            		speed:1 // talk normally
+        		});
+    		},250);
+		</script>
+</html>

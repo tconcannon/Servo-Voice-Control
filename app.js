@@ -36,10 +36,30 @@ var Board = require("firmata");
 // var board = new Board("path to serialport");
 
 var board = new five.Board();
+var pos=180;
+var close;
+var open;
 board.on("ready", function() {
-  led = new five.Led(13);
-  led.strobe(1000); // on off every second
+  // led = new five.Led(13);
+  // led.strobe(1000); // on off every second
   servo = new five.Servo(9); //initialize pwm
+  // var val;
+  servo.to(pos)
+  A0 = new five.Pin("A0");
+  A1 = new five.Pin("A1");
+
+  servo.to(165);
+  setInterval(function(){
+  A0.query(function(state){
+      console.log(state.value,'A0');
+  })
+  A0.query(function(state){
+      console.log(state.value,'A1');
+  })
+
+  }, 200)
+  
+
 });
 
 server.listen(80);
@@ -50,13 +70,59 @@ app.get('/', function (req, res) {
 
 io.on('connection', function (socket) {
   socket.emit('news', { hello: 'world' });
-  socket.on('open', function (data) {
-    console.log(data.command);
-    servo.to(160);
+  socket.on('close', function (data) {
+    console.log(data.command)
+    var state1=false;
+    var state2=false;
+    close=true;
+    open=false;
+   // while(!state1&& !state2){
+      var openFunc=setInterval(function(){
+        A0.query(function(state) {
+        console.log(state.value,'A0');
+        if(state.value<=30){
+          state1=true;
+        }
+        else if (state2 && state.value<=30){
+          state1=true;
+        }
+        })   
+        A1.query(function(state) {
+        console.log(state.value,'A1');
+        if(state.value<=30){
+          state2=true;
+        }
+        else if(state1 && state.value<=30){
+          state2=true;
+        }
+        })
+        if(close){
+          if(pos<180){
+             if(state1 && state2){}
+              else{
+                 pos++;
+              }
+       
+      console.log(pos,'pos')
+      servo.to(pos)
+      }
+        }
+      },50)
+  //  }
   });
-  socket.on('close',function(data){
-    console.log(data.command);
-    servo.to(10);
+  socket.on('open',function(data){
+    console.log('close')
+    close=false;
+    open=true;
+    setInterval(function(){
+      if(open){
+       if(pos>0){
+        pos--;
+        servo.to(pos);
+      } 
+      }
+      
+    },50);
   })
 });
 
